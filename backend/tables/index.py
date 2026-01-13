@@ -14,7 +14,7 @@ def handler(event: dict, context) -> dict:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type'
             },
             'body': '',
@@ -95,6 +95,67 @@ def handler(event: dict, context) -> dict:
                         'is_active': new_table[4]
                     }
                 }),
+                'isBase64Encoded': False
+            }
+        
+        elif method == 'PUT':
+            body = json.loads(event.get('body', '{}'))
+            table_id = body.get('id')
+            table_number = body.get('table_number')
+            login = body.get('login')
+            password = body.get('password')
+            hours = body.get('hours')
+            
+            if not table_id:
+                conn.close()
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Table ID required'}),
+                    'isBase64Encoded': False
+                }
+            
+            updates = []
+            if table_number:
+                updates.append(f"table_number = {table_number}")
+            if login:
+                updates.append(f"login = '{login}'")
+            if password:
+                hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                updates.append(f"password_hash = '{hashed}'")
+            if hours:
+                expires_at = datetime.now() + timedelta(hours=int(hours))
+                updates.append(f"expires_at = '{expires_at.isoformat()}'")
+                updates.append("is_active = true")
+            
+            if updates:
+                query = f"UPDATE {os.environ['MAIN_DB_SCHEMA']}.tables SET {', '.join(updates)} WHERE id = {table_id} RETURNING id, table_number, login, expires_at, is_active"
+                cursor.execute(query)
+                updated = cursor.fetchone()
+                conn.commit()
+                conn.close()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'table': {
+                            'id': updated[0],
+                            'table_number': updated[1],
+                            'login': updated[2],
+                            'expires_at': updated[3].isoformat(),
+                            'is_active': updated[4]
+                        }
+                    }),
+                    'isBase64Encoded': False
+                }
+            
+            conn.close()
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'No fields to update'}),
                 'isBase64Encoded': False
             }
         

@@ -1,10 +1,13 @@
 {
   "tests": [
     {
-      "name": "Get all tables",
+      "name": "Get all queue items",
       "method": "GET",
       "path": "/",
       "expectedStatus": 200,
+      "expectedBody": {
+        "queue": []
+      },
       "bodyMatcher": "partial"
     }
   ]
