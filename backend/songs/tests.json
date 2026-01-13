@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "Get all songs",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "songs": []
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Search songs by title",
+      "method": "GET",
+      "path": "/?search=test",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "songs": []
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

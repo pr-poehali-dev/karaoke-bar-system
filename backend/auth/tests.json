@@ -1,0 +1,38 @@
+{
+  "tests": [
+    {
+      "name": "Admin login with correct credentials",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "admin_login",
+        "username": "Ixen4300",
+        "password": "Komod666"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "user": {
+          "username": "string",
+          "role": "string"
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Admin login with wrong credentials",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "admin_login",
+        "username": "wrong",
+        "password": "wrong"
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

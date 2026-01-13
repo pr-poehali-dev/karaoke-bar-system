@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -34,7 +35,25 @@ interface QueueItem extends Song {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState<'table' | 'admin'>('table');
+
+  useEffect(() => {
+    const role = localStorage.getItem('role');
+    if (!role) {
+      navigate('/login');
+      return;
+    }
+    
+    if (location.pathname === '/admin' && role !== 'admin') {
+      navigate('/login');
+    } else if (location.pathname === '/table' && role !== 'table') {
+      navigate('/login');
+    }
+
+    setMode(role === 'admin' ? 'admin' : 'table');
+  }, [navigate, location]);
   const [searchQuery, setSearchQuery] = useState('');
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [currentSong, setCurrentSong] = useState<QueueItem | null>(null);
@@ -84,14 +103,29 @@ const Index = () => {
             <Icon name="Mic2" size={32} className="text-primary" />
             <h1 className="text-3xl md:text-4xl font-bold">Караоке Система</h1>
           </div>
-          <Button
-            variant={mode === 'table' ? 'default' : 'secondary'}
-            onClick={() => setMode(mode === 'table' ? 'admin' : 'table')}
-            className="gap-2"
-          >
-            <Icon name={mode === 'table' ? 'Shield' : 'Users'} size={20} />
-            {mode === 'table' ? 'Режим администратора' : 'Режим стола'}
-          </Button>
+          <div className="flex items-center gap-3">
+            {mode === 'admin' && (
+              <Button
+                variant="secondary"
+                onClick={() => navigate('/admin')}
+                className="gap-2"
+              >
+                <Icon name="Settings" size={20} />
+                Панель управления
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => {
+                localStorage.clear();
+                navigate('/login');
+              }}
+              className="gap-2"
+            >
+              <Icon name="LogOut" size={20} />
+              Выход
+            </Button>
+          </div>
         </div>
 
         {mode === 'table' ? (
